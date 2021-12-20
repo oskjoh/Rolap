@@ -1,9 +1,9 @@
 #' Download and install Rolap dependencies
 #'
 #' This function downloads and installs dependencies (IronPython and 'Microsoft.AnalysisServices.AdomdClient.dll') for the Rolap package.
-#' @param ironpython Path for downloading Ironpython from the web.
-#' @param ironpython Path for downloading ZIP-file from Nuget containing the necessary MSASS DLL Library file.
-#' @param dependencies_path Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.
+#' @param ironpython_url Path for downloading Ironpython from the web.
+#' @param adomd_client_dll Path for downloading ZIP-file from Nuget containing the necessary Adomd Client DLL file.
+#' @param install_dir Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.
 #' @keywords olap MDX
 #' @export
 #' @examples

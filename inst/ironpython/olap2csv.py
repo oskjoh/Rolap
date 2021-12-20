@@ -2,7 +2,7 @@
 """
 Created on Sat Sep 21 14:14:26 2019
 
-@author: ojo
+@author: Oskar Johansson
 """
 import clr
 import csv
@@ -36,12 +36,8 @@ def python_olap2csv(datasource, catalog, userid, password, fileout, query):
 	rows = []
 	for row in datasetParam.Tables[0].Rows:
 	    rows.append([str(x).encode('utf-8') for x in row])
-	#columnNames_fix = [item.replace("\\[u\\'", "\\'") for item in columnNames]
-	#columnNames_fix = [item.replace("\\'\\]", "'") for item in columnNames_fix]
 
 	with open(fileout, 'w') as f:
-		#f.write('|'.join([col for col in columnClasses]))
-		#f.write('\n')
 		f.write('|'.join([(col.encode('utf-8')) for col in columnNames]))
 		f.write('\n')
 		output = '\n'.join(['|'.join(map(str,item)) for item in rows])

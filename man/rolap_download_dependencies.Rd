@@ -14,9 +14,11 @@ rolap_download_dependencies(
 )
 }
 \arguments{
-\item{ironpython}{Path for downloading ZIP-file from Nuget containing the necessary MSASS DLL Library file.}
+\item{ironpython_url}{Path for downloading Ironpython from the web.}
 
-\item{dependencies_path}{Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.}
+\item{install_dir}{Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.}
+
+\item{adomd_client_dll}{Path for downloading ZIP-file from Nuget containing the necessary Adomd Client DLL file.}
 }
 \description{
 This function downloads and installs dependencies (IronPython and 'Microsoft.AnalysisServices.AdomdClient.dll') for the Rolap package.

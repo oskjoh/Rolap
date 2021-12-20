@@ -51,7 +51,7 @@ Unzip the downloaded file and copy the contents of the ```net45``` folder to the
 
 2. Locate/Download ```Microsoft.AnalysisServices.AdomdClient.dll``` and place it in the
 ```Rolap/ironpython/DLLs``` folder. The 'Rolap::rolap_download_dependencies()'-script does this
-by downloading the Nuget-package-file from [here](https://www.nuget.org/packages/Microsoft.AnalysisServices.AdomdClient.retail.amd64/) and obtains the required DLL file from the Nuget-package (which is really just a zip-archive. The file is located in the archive directory ```lib/net45```
+by downloading the Nuget-package-file from [here](https://www.nuget.org/packages/Microsoft.AnalysisServices.AdomdClient.retail.amd64/) and obtains the required DLL file from the Nuget-package (which is really just a zip-archive).
 
 ## Usage
 
