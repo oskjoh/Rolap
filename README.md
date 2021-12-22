@@ -75,6 +75,10 @@ FROM [Sales]
 WHERE ( [Products].[Pharmaceuticals].[Oncology] )")
 
 ```
-
+If you are unfamiliar with the database, available cubes and dimensions
+you can explore the database using the ```explore_schema``` function. Available
+cubes can be found by running ```explore_schema(con, "Cubes")``` and
+dimensions can be explored by using ```explore_schema(con, "Levels")```.
+Further information is available in the documentation.
 
 
