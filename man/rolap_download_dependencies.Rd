@@ -10,13 +10,16 @@ rolap_download_dependencies(
     ironpython_url = "https://github.com/IronLanguages/ironpython2/releases/download/ipy-2.7.11/IronPython.2.7.11.zip",
  
     adomd_client_url = "https://www.nuget.org/api/v2/package/Microsoft.AnalysisServices.AdomdClient.retail.amd64",
-  install_dir = find.package("Rolap")
+  install_dir = find.package("Rolap"),
+  assume_yes = FALSE
 )
 }
 \arguments{
 \item{ironpython_url}{Path for downloading Ironpython from the web.}
 
 \item{install_dir}{Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.}
+
+\item{assume_yes}{Assume "yes" as answer for prompt to confirm download and installation of dependencies and run non-interactively.}
 
 \item{adomd_client_dll}{Path for downloading ZIP-file from Nuget containing the necessary Adomd Client DLL file.}
 }

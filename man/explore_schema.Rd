@@ -4,14 +4,14 @@
 \alias{explore_schema}
 \title{Explore MS OLAP Schema}
 \usage{
-explore_schema(con, filed, clean_names = FALSE)
+explore_schema(con, field, clean_names = FALSE)
 }
 \arguments{
 \item{con}{A list of connection parameters, as returned by 'Rolap::olap_connection'.}
 
-\item{clean_names}{Clean column names by the use of 'janitor::clean_names'?}
-
 \item{field}{The field of information to explore. Read more in details.}
+
+\item{clean_names}{Clean column names by the use of 'janitor::clean_names'?}
 }
 \description{
 This function returns a tibble of information regarding the available Cubes
