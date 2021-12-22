@@ -15,7 +15,7 @@ explore_schema(con, field, clean_names = FALSE)
 }
 \description{
 This function returns a tibble of information regarding the available Cubes
-or the contents of Cubes
+or the contents of Cubes.
 }
 \details{
 \subsection{Fields}{

@@ -155,7 +155,7 @@ read_olap <- function(con, query, clean_names = TRUE) {
 #' Explore MS OLAP Schema
 #'
 #' This function returns a tibble of information regarding the available Cubes
-#' or the contents of Cubes
+#' or the contents of Cubes.
 #' @param con A list of connection parameters, as returned by 'Rolap::olap_connection'.
 #' @param field The field of information to explore. Read more in details.
 #' @param clean_names Clean column names by the use of 'janitor::clean_names'?
