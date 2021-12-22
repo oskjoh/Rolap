@@ -156,7 +156,7 @@ read_olap <- function(con, query, clean_names = TRUE) {
 #' explore_schema(con, "Levels")
 #'  }
 
-explore_schema <- function(con, filed, clean_names = FALSE) {
+explore_schema <- function(con, field, clean_names = FALSE) {
   # Get connection info
   coninf <- c(unlist(con), field)
   # path to python script
