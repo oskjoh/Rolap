@@ -1,7 +1,7 @@
 Package: Rolap
 Title: R OLAP querying tools
 Authors@R: 
-  person("Oskar", "Johansson", "oskar.e.johansson@gmail.com", role = c("aut", "cre"))
+  person("Oskar", , "Johansson", "oskar.e.johansson@gmail.com", role = c("aut", "cre"))
 Version: 1.0
 Description: Rolap is an R package used for asking MDX queries and connect to a SQL Server Analysis Services OLAP cube. Unlike the package "olapR", Rolap can be used with the regular R distribution and not only using the Microsoft specific R.
 Encoding: UTF-8

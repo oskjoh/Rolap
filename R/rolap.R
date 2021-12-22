@@ -4,6 +4,7 @@
 #' @param ironpython_url Path for downloading Ironpython from the web.
 #' @param adomd_client_dll Path for downloading ZIP-file from Nuget containing the necessary Adomd Client DLL file.
 #' @param install_dir Installation path of the downloaded dependencies. Defaults to the dependencies folder within the Rolap library directory.
+#' @param assume_yes Assume "yes" as answer for prompt to confirm download and installation of dependencies and run non-interactively.
 #' @keywords olap MDX
 #' @export
 #' @examples
@@ -12,9 +13,10 @@
 #'  }
 
 rolap_download_dependencies <- function(provide_credentials = TRUE,
-                  ironpython_url = "https://github.com/IronLanguages/ironpython2/releases/download/ipy-2.7.11/IronPython.2.7.11.zip",
-                  adomd_client_url = "https://www.nuget.org/api/v2/package/Microsoft.AnalysisServices.AdomdClient.retail.amd64",
-                  install_dir =  find.package("Rolap")) {
+                                        ironpython_url = "https://github.com/IronLanguages/ironpython2/releases/download/ipy-2.7.11/IronPython.2.7.11.zip",
+                                        adomd_client_url = "https://www.nuget.org/api/v2/package/Microsoft.AnalysisServices.AdomdClient.retail.amd64",
+                                        install_dir =  find.package("Rolap"),
+                                        assume_yes = FALSE) {
 
   # Prepare tempdirs and tempfiles
   tempfile_ironpython <- tempfile()
@@ -30,27 +32,42 @@ rolap_download_dependencies <- function(provide_credentials = TRUE,
         Rolap uses IronPython and 'Microsoft.AnalysisServices.AdomdClient.dll' to connect and query OLAP Cubes.
         This setup script will now download, unzip and install the required dependency files.\n")
 
-  readline(prompt="Press [enter] to continue")
+  if (assume_yes) {
+    continue = TRUE
+  } else {
+    answer <- readline("Dou you want to continue (Y/N)?")
+    continue <- trimws(tolower(answer)) == "y"
+  }
+  if(!continue) {
+    message("Exiting install script.")
+  } else {
+    message("Downloading and installing IronPython.")
 
-  message("Downloading and installing IronPython.")
+    message(paste("Downloading", ironpython_url))
+    utils::download.file(ironpython_url, tempfile_ironpython, method = "curl", extra = c("-L", "--anyauth"))
 
-  message(paste("Downloading", ironpython_url))
-  utils::download.file(ironpython_url, tempfile_ironpython, method = "curl", extra = c("-L", "--anyauth"))
+    message(paste("Unzipping IronPython to:", install_dir_ironpython))
+    utils::unzip(tempfile_ironpython, exdir = tempdir_ironpython)
+    file.copy(list.files(file.path(tempdir_ironpython, "net45"), full.names = TRUE), install_dir_ironpython,
+              overwrite = TRUE, recursive = TRUE)
 
-  message(paste("Unzipping IronPython to:", install_dir_ironpython))
-  utils::unzip(tempfile_ironpython, exdir = tempdir_ironpython)
-  file.copy(list.files(file.path(tempdir_ironpython, "net45"), full.names = TRUE), install_dir_ironpython,
-            overwrite = TRUE, recursive = TRUE)
+    message("\nDownloading and installing 'Microsoft.AnalysisServices.AdomdClient.dll'")
 
-  message("\nDownloading and installing 'Microsoft.AnalysisServices.AdomdClient.dll'")
+    download.file(adomd_client_url, tempfile_adomd_client, method = "curl", extra = c("-L", "--anyauth"))
 
-  download.file(adomd_client_url, tempfile_adomd_client, method = "curl", extra = c("-L", "--anyauth"))
+    message(paste("\nUnzipping 'Microsoft.AnalysisServices.AdomdClient.dll' to:", install_dir_adomd_client))
+    unzip(tempfile_adomd_client, files = "lib/net45/Microsoft.AnalysisServices.AdomdClient.dll", exdir = tempdir_adomd_client, overwrite = TRUE)
+    quiet <- file.copy(file.path(tempdir_adomd_client, "lib", "net45", "Microsoft.AnalysisServices.AdomdClient.dll"), install_dir_adomd_client)
 
-  message(paste("\nUnzipping 'Microsoft.AnalysisServices.AdomdClient.dll' to:", install_dir_adomd_client))
-  unzip(tempfile_adomd_client, files = "lib/net45/Microsoft.AnalysisServices.AdomdClient.dll", exdir = tempdir_adomd_client, overwrite = TRUE)
-  quiet <- file.copy(file.path(tempdir_adomd_client, "lib", "net45", "Microsoft.AnalysisServices.AdomdClient.dll"), install_dir_adomd_client)
-
-  message("\nSetup finnished!")
+    if(file.exists(file.path(install_dir, "ironpython","ipy.exe"))
+       &
+       file.exists(file.path(install_dir, "ironpython", "DLLs", "Microsoft.AnalysisServices.AdomdClient.dll"))
+    ) {
+      message("\nSetup successfull!")
+    } else {
+      message("\nSetup finnished without a successfull install!")
+    }
+  }
 }
 
 #' Specify connection parameters to connect to an MS OLAP Cube
