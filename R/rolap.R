@@ -53,43 +53,6 @@ rolap_download_dependencies <- function(provide_credentials = TRUE,
   message("\nSetup finnished!")
 }
 
-#' Query an MS OLAP Cube
-#'
-#' This function returns a tibble of data from an MDX queried OLAP cube.
-#' @param con A list of connection parameters, as returned by 'Rolap::olap_connection'.
-#' @param query A MDX-query.
-#' @param clean_names Clean column names by the use of 'janitor::clean_names'?
-#' @keywords olap MDX
-#' @export
-#' @examples
-#' \dontrun{
-#' con <- olap_connection("user", "pwd", "https://myolapcube.mycompany.com/msolap/", catalog = "Sales")
-#' df <- read_olap(
-#'  con,
-#'  "SELECT
-#'     { [Measures].[Pack sales], [Measures].[Value sales] } ON COLUMNS,
-#'     { [Year].[2020], [Year].[2021] } ON ROWS
-#'   FROM [Sales]
-#'   WHERE ( [Products].[Pharmaceuticals].[Oncology] )")
-#'  }
-
-read_olap <- function(con, query, clean_names = TRUE) {
-  # Get connection info
-  coninf <- c(unlist(con), query)
-  # path to python script
-  path2py <- file.path(find.package("Rolap"), "ironpython", "olap2csv.py")
-  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
-  # Run python script
-  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
-  system(args)
-  # Read the produced csv and return
-  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
-
-  if(clean_names) {
-    .df <- janitor::clean_names(.df)
-  }
-  return(.df)
-}
 #' Specify connection parameters to connect to an MS OLAP Cube
 #'
 #' This function returns a list formated with the correct parameters
@@ -132,4 +95,81 @@ olap_connection <- function (userid = NULL, password = NULL, datasource,
   }
   list(datasource = datasource, catalog = catalog, userid = userid,
        password = password, fileout = fileout, adomd_client_path = adomd_client_path)
+}
+
+#' Query an MS OLAP Cube
+#'
+#' This function returns a tibble of data from an MDX queried OLAP cube.
+#' @param con A list of connection parameters, as returned by 'Rolap::olap_connection'.
+#' @param query A MDX-query.
+#' @param clean_names Clean column names by the use of 'janitor::clean_names'?
+#' @keywords olap MDX
+#' @export
+#' @examples
+#' \dontrun{
+#' con <- olap_connection("user", "pwd", "https://myolapcube.mycompany.com/msolap/", catalog = "Sales")
+#' read_olap(
+#'  con,
+#'  "SELECT
+#'     { [Measures].[Pack sales], [Measures].[Value sales] } ON COLUMNS,
+#'     { [Year].[2020], [Year].[2021] } ON ROWS
+#'   FROM [Sales]
+#'   WHERE ( [Products].[Pharmaceuticals].[Oncology] )")
+#'  }
+
+read_olap <- function(con, query, clean_names = TRUE) {
+  # Get connection info
+  coninf <- c(unlist(con), query)
+  # path to python script
+  path2py <- file.path(find.package("Rolap"), "ironpython", "call_read_olap.py")
+  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
+  # Run python script
+  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
+  system(args)
+  # Read the produced csv and return
+  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
+
+  if(clean_names) {
+    .df <- janitor::clean_names(.df)
+  }
+  return(.df)
+}
+
+#' Explore MS OLAP Schema
+#'
+#' This function returns a tibble of information regarding the available Cubes
+#' or the contents of Cubes
+#' @param con A list of connection parameters, as returned by 'Rolap::olap_connection'.
+#' @param field The field of information to explore. Read more in details.
+#' @param clean_names Clean column names by the use of 'janitor::clean_names'?
+#' @details ## Fields
+#' The schema of information from the database contains different fields of information.
+#' You need to specify which type of information you want to explore. Usually,
+#' you should get most of the useful information from the following filelds: 'Cubes', 'Hierarchies',
+#' 'Levels' and 'Measures'. All available fields to explore can be found
+#' [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.analysisservices.adomdclient.adomdschemaguid?view=analysisservices-dotnet#fields).
+#' @keywords olap MDX
+#' @export
+#' @examples
+#' \dontrun{
+#' con <- olap_connection("user", "pwd", "https://myolapcube.mycompany.com/msolap/", catalog = "Sales")
+#' explore_schema(con, "Levels")
+#'  }
+
+explore_schema <- function(con, filed, clean_names = FALSE) {
+  # Get connection info
+  coninf <- c(unlist(con), field)
+  # path to python script
+  path2py <- file.path(find.package("Rolap"), "ironpython", "call_explore_schema.py")
+  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
+  # Run python script
+  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
+  system(args)
+  # Read the produced csv and return
+  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
+
+  if(clean_names) {
+    .df <- janitor::clean_names(.df)
+  }
+  return(.df)
 }

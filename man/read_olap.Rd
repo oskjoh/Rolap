@@ -19,7 +19,7 @@ This function returns a tibble of data from an MDX queried OLAP cube.
 \examples{
 \dontrun{
 con <- olap_connection("user", "pwd", "https://myolapcube.mycompany.com/msolap/", catalog = "Sales")
-df <- read_olap(
+read_olap(
  con,
  "SELECT
     { [Measures].[Pack sales], [Measures].[Value sales] } ON COLUMNS,
