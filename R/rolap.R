@@ -114,6 +114,53 @@ olap_connection <- function (userid = NULL, password = NULL, datasource,
        password = password, fileout = fileout, adomd_client_path = adomd_client_path)
 }
 
+#' Internal Querying function
+#'
+#' Common internal function which performs the system calls to the IronPython
+#' scripts. Is called by 'rolap::read_olap()' and 'rolap::explore_schema()'.
+#'
+#' This function returns a tibble of data from an MDX queried OLAP cube.
+#' @param con A list of connection parameters, as returned by
+#'   'Rolap::olap_connection'.
+#' @param query A MDX-query, or level to explore.
+#' @param script The name of the underlying python function to call.
+#' @param clean_names Clean column names by the use of 'janitor::clean_names'?
+#' @keywords olap MDX
+
+query_olap <- function(con,
+                       query,
+                       call = c("explore_schema", "read_olap"),
+                       clean_names = TRUE) {
+  # Note the time when we started running
+  ts_start <- Sys.time()
+
+  # Get connection info
+  coninf <- c(unlist(con), query, call)
+
+  # Prepare python script (paths)
+  path2py <- file.path(find.package("Rolap"), "ironpython", "call_from_R.py")
+  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
+
+  # Run python script
+  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
+  call <- suppressWarnings(system(args, intern = TRUE))
+
+  # If system call returns error, show error and stop function.
+  if(length(call) != 0) stop(call[length(call)])
+
+  # Before reading file, check that it has actually changed since we called the
+  # function (and is not a remainder from a previous run)
+  if(file.info(con[["fileout"]])$mtime < ts_start) stop("Internal tempfile not found. Failed to retrive data.")
+
+  # Read the produced csv and return
+  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
+
+  if(clean_names) {
+    .df <- janitor::clean_names(.df)
+  }
+  return(.df)
+}
+
 #' Query an MS OLAP Cube
 #'
 #' This function returns a tibble of data from an MDX queried OLAP cube.
@@ -135,34 +182,7 @@ olap_connection <- function (userid = NULL, password = NULL, datasource,
 #'  }
 
 read_olap <- function(con, query, clean_names = TRUE) {
-  # Note the time when we started running
-  ts_start <- Sys.time()
-
-  # Get connection info
-  coninf <- c(unlist(con), query)
-
-  # Prepare python script (paths)
-  path2py <- file.path(find.package("Rolap"), "ironpython", "call_read_olap.py")
-  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
-
-  # Run python script
-  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
-  call <- suppressWarnings(system(args, intern = TRUE))
-
-  # If system call returns error, show error and stop function.
-  if(length(call) != 0) stop(call[4])
-
-  # Before reading file, check that it has actually changed since we called the
-  # function (and is not a remainder from a previous run)
-  if(file.info(con[["fileout"]])$mtime < ts_start) stop("Internal tempfile not found. Failed to retrive data.")
-
-  # Read the produced csv and return
-  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
-
-  if(clean_names) {
-    .df <- janitor::clean_names(.df)
-  }
-  return(.df)
+  query_olap(con, query, "read_olap", clean_names)
 }
 
 #' Explore MS OLAP Schema
@@ -186,33 +206,6 @@ read_olap <- function(con, query, clean_names = TRUE) {
 #' explore_schema(con, "Levels")
 #'  }
 
-explore_schema <- function(con, field, clean_names = FALSE) {
-  # Note the time when we started running
-  ts_start <- Sys.time()
-
-  # Get connection info
-  coninf <- c(unlist(con), field)
-
-  # Prepare python script (paths)
-  path2py <- file.path(find.package("Rolap"), "ironpython", "call_explore_schema.py")
-  path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
-
-  # Run python script
-  args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
-  call <- suppressWarnings(system(args, intern = TRUE))
-
-  # If system call returns error, show error and stop function.
-  if(length(call) != 0) stop(paste("Rolap Error:", call[4]))
-
-  # Before reading file, check that it has actually changed since we called the
-  # function (and is not a remainder from a previous run)
-  if(file.info(con[["fileout"]])$mtime < ts_start) stop("Internal tempfile not found. Failed to retrive data.")
-
-  # Read the produced csv and return
-  .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
-
-  if(clean_names) {
-    .df <- janitor::clean_names(.df)
-  }
-  return(.df)
+explore_schema <- function(con, query, clean_names = TRUE) {
+  query_olap(con, query, "explore_schema", clean_names)
 }
