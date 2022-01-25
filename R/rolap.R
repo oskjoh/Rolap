@@ -135,14 +135,27 @@ olap_connection <- function (userid = NULL, password = NULL, datasource,
 #'  }
 
 read_olap <- function(con, query, clean_names = TRUE) {
+  # Note the time when we started running
+  ts_start <- Sys.time()
+
   # Get connection info
   coninf <- c(unlist(con), query)
-  # path to python script
+
+  # Prepare python script (paths)
   path2py <- file.path(find.package("Rolap"), "ironpython", "call_read_olap.py")
   path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
+
   # Run python script
   args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
-  system(args)
+  call <- suppressWarnings(system(args, intern = TRUE))
+
+  # If system call returns error, show error and stop function.
+  if(length(call) != 0) stop(call[4])
+
+  # Before reading file, check that it has actually changed since we called the
+  # function (and is not a remainder from a previous run)
+  if(file.info(con[["fileout"]])$mtime < ts_start) stop("Internal tempfile not found. Failed to retrive data.")
+
   # Read the produced csv and return
   .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
 
@@ -174,14 +187,27 @@ read_olap <- function(con, query, clean_names = TRUE) {
 #'  }
 
 explore_schema <- function(con, field, clean_names = FALSE) {
+  # Note the time when we started running
+  ts_start <- Sys.time()
+
   # Get connection info
   coninf <- c(unlist(con), field)
-  # path to python script
+
+  # Prepare python script (paths)
   path2py <- file.path(find.package("Rolap"), "ironpython", "call_explore_schema.py")
   path2exe <- file.path(find.package("Rolap"), "ironpython", "ipy.exe")
+
   # Run python script
   args <- paste(path2exe, path2py, paste0("\"", coninf, "\"", collapse = " "))
-  system(args)
+  call <- suppressWarnings(system(args, intern = TRUE))
+
+  # If system call returns error, show error and stop function.
+  if(length(call) != 0) stop(paste("Rolap Error:", call[4]))
+
+  # Before reading file, check that it has actually changed since we called the
+  # function (and is not a remainder from a previous run)
+  if(file.info(con[["fileout"]])$mtime < ts_start) stop("Internal tempfile not found. Failed to retrive data.")
+
   # Read the produced csv and return
   .df <- readr::read_delim(con[["fileout"]], "|", col_types = readr::cols())
 
